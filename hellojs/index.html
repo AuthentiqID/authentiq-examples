@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello.js example for Authentiq Provider</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Hello.js example for Authentiq Provider" />
+  <meta property="og:url" content="http://authentiq.io" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="Hello.js example for Authentiq Provider" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <link rel="stylesheet" href="https://rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+  
+  <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://rawgit.com/AuthentiqID/bootstrap/master/dist/js/bootstrap.min.js"></script>
+  <script src="https://rawgit.com/skion/hello.js/master/dist/hello.all.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Hello.js example for Authentiq Provider</h1>
+    <hr />
+
+    <p class="lead">
+      For testing this example you must have our app installed on your phone.
+    </p>
+
+    <p>
+      <button id="authentiq-button" class="btn btn-primary">
+        Sign in using your phone
+      </button>
+    </p>
+    <br />
+
+    <h2>Console output</h2>
+    <div id="console">
+      <pre></pre>
+    </div>
+  </div>
+
+  <script>
+    hello.init(
+      // set the Provider client ID
+      {
+        authentiq: 'test-js-snippet'
+      },
+
+      // set default options for all buttons
+      {
+        display: 'popup',
+        scope: 'basic',
+        window_width: 500,
+        window_height: 500
+      }
+    );
+
+    // listen on login event
+    hello.on('auth.login', function(auth) {
+
+      // change button text
+      $('#authentiq-button').text('Sign out');
+      
+      // mark button as signed in
+      $('#authentiq-button').data('is-signed-in', 1);
+
+      // get user information
+      hello(auth.network).api('/me').then(function(r) {
+
+        // update UI
+        debug('profile', r);
+      });
+    });
+
+    // listen on logout event
+    hello.on('auth.logout', function(auth) {
+      // change button text
+      $('#authentiq-button').text('Sign in using your phone');
+
+      // mark button as signed out
+      $('#authentiq-button').data('is-signed-in', 0);
+
+      // update UI
+      debug('concluded');
+    });
+
+    // helper funcction from hello.js docs
+    // that checks current user state
+    var is_signed_in = function(session){
+      var session = hello('authentiq').getAuthResponse();
+
+      var current_time = (new Date()).getTime() / 1000;
+      return session && session.access_token && session.expires < current_time;
+    };
+
+    // once document is ready
+    $(function() {
+      // find button in DOM
+      $('#authentiq-button')
+
+        // update it signed in/out state
+        .data('is-signed-in', is_signed_in())
+
+        // handle click event
+        .on('click', function(){
+          
+          // if user is signed in
+          if ($(this).data('is-signed-in') == 1) {
+
+            // perform sign out
+            hello('authentiq').logout({
+              // force: true
+            });
+          } else {
+            
+            // perform sign in
+            hello('authentiq').login();
+          }
+        });
+    });
+  </script>
+
+  <script>
+    // helper function for demo purposes
+    // this is not part of Authentiq snippet implementation
+    function debug(command, data) {
+      var row = $('<div>')
+                    .addClass('row')
+                    .append($('<div>')
+                      .addClass('col-md-2 text-primary')
+                      .text(command))
+                    .append($('<div>')
+                      .addClass('col-md-10')
+                      .text(JSON.stringify(data, null, 2)));
+
+      $('#console pre:first-child').prepend(row);
+
+      if (command === 'concluded') {
+        $('#console').prepend($('<pre>'));
+      }
+    }
+  </script>
+</body>
+</html>
