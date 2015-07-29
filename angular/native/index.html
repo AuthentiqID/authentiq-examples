@@ -1,0 +1,67 @@
+<!doctype html>
+<html ng-app="todoApp">
+  <head>
+    <link rel="stylesheet" href="https://rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+
+    <!-- load the Authentiq snippet -->
+    <script src="static/js/authentiq.js"
+            class="authentiq-snippet"
+            data-client-id="test-js-snippet">
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+
+    <!-- Load the angular module that handles the Authentiq snippet -->
+    <script src="authentiq-angular.js"></script>
+    
+    <script src="todo.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Authentiq snippet example in angular.js</h1>
+      <hr />
+
+      <p class="lead">
+        For testing this example you must have our app installed on your phone.
+      </p>
+
+      <p>
+        <!-- Create a button for connecting using Authentiq Connect -->
+        <button class="authentiq-button"
+                data-sign-out-claim="given_name">
+          Sign in using your phone
+        </button>
+      </p>
+
+      <hr />
+  
+      <h2>Todo list{{profile.given_name ? ' of ' + profile.name: ''}}</h2>
+
+      <p ng-show="!loggedIn">Please login first.</p>
+
+      <div ng-controller="TodoListController as todoList" ng-show="loggedIn">
+        <span>{{todoList.remaining()}} of {{todoList.todos.length}} remaining</span>
+        [ <a href="" ng-click="todoList.archive()">archive</a> ]
+        <ul class="unstyled">
+          <li ng-repeat="todo in todoList.todos">
+            <input type="checkbox" ng-model="todo.done">
+            <span class="done-{{todo.done}}">{{todo.text}}</span>
+          </li>
+        </ul>
+        <form ng-submit="todoList.addTodo()">
+          <input type="text" ng-model="todoList.todoText"  size="30"
+                 placeholder="add new todo here">
+          <input class="btn-primary" type="submit" value="add">
+        </form>
+      </div>
+
+      <br />
+      <pre>
+        <strong>Debug vars:</strong>
+
+        loggedIn = {{loggedIn}}
+        profile = {{profile | json}}
+      </pre>
+    </div>
+  </body>
+</html>
