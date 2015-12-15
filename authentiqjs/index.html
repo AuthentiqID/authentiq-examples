@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentiq example - Client side JS snippet</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Authentiq example - Client side JS snippet" />
+  <meta property="og:url" content="http://www.authentiq.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="Authentiq example - Client side JS snippet" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <!-- Load our Bootstrap theme -->
+  <link rel="stylesheet" href="//rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+
+  <!-- Load needed fonts -->
+  <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
+  
+  <!-- 
+      Load the Authentiq snippet,
+      we also set client-id that will be used
+
+      IMPORTANT: the class needs to be set like this
+  -->
+  <script src="authentiq.js"
+          class="authentiq-snippet"
+          data-client-id="examples-authentiqjs-prod">
+  </script>
+
+  <script>
+    // let's handle some events that snippet will emit
+    authentiq.subscribe('authorized', function(token){
+      debug('authorized', token);
+    });
+
+    authentiq.subscribe('authorized:id_token', function(id_token){
+      debug('authorized:id_token', id_token);
+    });
+
+    authentiq.subscribe('profile', function(profile){
+      debug('profile', profile);
+    });
+
+    authentiq.subscribe('concluded', function(){
+      debug('concluded');
+    });
+
+    authentiq.subscribe('error', function(error){
+      debug('error', error);
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Authentiq snippet example</h1>
+    <hr />
+
+    <p class="lead">
+      For testing this example you must have our app installed on your phone.
+    </p>
+
+    <p>
+      <button class="authentiq-button"
+              data-sign-out-claim="given_name">
+        Sign in using your phone
+      </button>
+    </p>
+    <br />
+
+    <h2>Console output</h2>
+    <div id="console">
+      <pre></pre>
+    </div>
+  </div>
+
+  <!-- Load jQuery -->
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//rawgit.com/AuthentiqID/bootstrap/master/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    // helper function for demo purposes
+    // this is not part of Authentiq snippet implementation
+    function debug(command, data) {
+      var row = $('<div>')
+                    .addClass('row')
+                    .append($('<div>')
+                      .addClass('col-md-2 text-primary')
+                      .text(command))
+                    .append($('<div>')
+                      .addClass('col-md-10')
+                      .text(JSON.stringify(data, null, 2)));
+
+      $('#console pre:first-child').prepend(row);
+
+      if (command === 'concluded') {
+        $('#console').prepend($('<pre>'));
+      }
+    }
+  </script>
+</body>
+</html>

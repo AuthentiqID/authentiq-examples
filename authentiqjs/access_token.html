@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentiq example - Client side JS snippet - Retrieve an access_token</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Authentiq example - Client side JS snippet" />
+  <meta property="og:url" content="http://www.authentiq.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="Authentiq example - Client side JS snippet" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <!-- Load our Bootstrap theme -->
+  <link rel="stylesheet" href="//rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+
+  <!-- Load needed fonts -->
+  <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
+
+  <!-- 
+      Load the Authentiq snippet,
+      we also set client-id that will be used
+
+      IMPORTANT: the class needs to be set like this
+  -->
+  <script src="authentiq.js"
+          class="authentiq-snippet"
+          data-client-id="test-js-snippet">
+  </script>
+
+  <script>
+    // let's handle some events that snippet will emit
+    authentiq.subscribe('authorized', function(token){
+      debug('authorized', token);
+    });
+
+    authentiq.subscribe('authorized:id_token', function(id_token){
+      debug('authorized:id_token', id_token);
+    });
+
+    authentiq.subscribe('authorized:access_token', function(token){
+      if(typeof token.expires_in !== 'undefined') {
+        var expires_at = new Date();
+
+        // 60 seconds less to secure browser and response latency
+        expires_at.setSeconds(expires_at.getSeconds() + parseInt(token.expires_in) - 60);
+        
+        token.expires_at = expires_at;
+      }
+
+      // store the access_token in localStorage
+      localStorage['authentiq.access_token'] = JSON.stringify(token);
+
+      // update html
+      debug('authorized:access_token', token);
+    });
+
+    authentiq.subscribe('profile', function(profile) {
+      debug('profile', profile);
+    });
+
+    authentiq.subscribe('concluded', function(){
+      // delete the access token from localStorage
+      delete localStorage['authentiq.access_token'];
+
+      debug('concluded');
+    });
+
+    authentiq.subscribe('error', function(error){
+      debug('error', error);
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Authentiq snippet example <small>Retrieve an access_token</small></h1>
+    <hr />
+
+    <p class="lead">
+      For testing this example you must have our app installed on your phone.
+    </p>
+
+    <p>
+      <button class="authentiq-button"
+              data-response-type="id_token token"
+              data-sign-out-claim="given_name">
+        Sign in using your phone
+      </button>
+    </p>
+    <br />
+
+    <p>
+      Access token is <strong id="access_token_loaded" class="text-primary">not</strong> loaded <strong id="access_token"></strong>
+    </p>
+    <p id="access_token_is_expired" class="text-danger" style="display: none;">Access token is expired</p>
+    <br />
+
+    <h2>Console output</h2>
+    <div id="console">
+      <pre></pre>
+    </div>
+  </div>
+
+  <!-- Load jQuery -->
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//rawgit.com/AuthentiqID/bootstrap/master/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    // helper function for demo purposes
+    // this is not part of Authentiq snippet implementation
+    function debug(command, data) {
+      console.log('- ', command);
+      var row = $('<div>')
+                    .addClass('row')
+                    .append($('<div>')
+                      .addClass('col-md-2 text-primary')
+                      .text(command))
+                    .append($('<div>')
+                      .addClass('col-md-10')
+                      .text(JSON.stringify(data, null, 2)));
+
+      $('#console pre:first-child').prepend(row);
+
+      if (command === 'concluded') {
+        $('#console').prepend($('<pre>'));
+      }
+
+      update_ui_access_token();
+    }
+
+    function update_ui_access_token() {
+      var access_token = '',
+          token = localStorage['authentiq.access_token'];
+
+      if (typeof token !== 'undefined') {
+        // json parse the token
+        token = JSON.parse(token);
+        
+        access_token = token.access_token;
+      }
+
+      $('#access_token_loaded').toggle(!access_token);
+      $('#access_token').text(access_token);
+      $('#access_token_is_expired').hide();
+
+      // check if access_token is expired
+      if (token && !!token.expires_at && new Date(token.expires_at) < new Date()) {
+        $('#access_token_is_expired').show();
+      }
+    }
+  </script>
+</body>
+</html>
