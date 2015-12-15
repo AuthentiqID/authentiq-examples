@@ -30,7 +30,7 @@
         height: 100%;
       }
 
-      #intro {
+      #intro, #examples-container {
         padding-top: 20px;
       }
 
@@ -76,7 +76,7 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Client side examples<span class="caret"></span></a>
               <ul class="dropdown-menu examples-menu">
-                <li><a href="authentiq-js/index.html"><b>AuthentiqJS</b> &ndash; Authentiq Connect</a></li>
+                <li><a href="authentiqjs/index.html"><b>AuthentiqJS</b> &ndash; Authentiq Connect</a></li>
                 <li><a href="angular/native/index.html"><b>AngularJS</b> &ndash; Authentiq Connect</a></li>
                 <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>AngularJS</b> &ndash; OAuth 2.0</a></li>
                 <li><a href="hellojs/index.html"><b>HelloJS</b> &ndash; OAuth 2.0</a></li>
@@ -193,7 +193,7 @@
           $('#view-on-github').on('click', function(e) {
             e.preventDefault();
 
-            window.location = $(this).data('github-base') + active_href;
+            window.open($(this).data('github-base') + active_href, '_blank');
           });
 
           // instead of handling all button clicks
