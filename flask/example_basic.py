@@ -28,11 +28,13 @@ class Config(object):
     TESTING = False
     SECRET_KEY = "Curve25519"
 
-CLIENT_ID = "test-client-examples"
-CLIENT_SECRET = "NoMorePassw0rds!"
-REDIRECT_URL = "http://localhost:5555/authorized"
+PORT = 5002
+
+CLIENT_ID = "examples-flask"
+CLIENT_SECRET = "ed25519"
+REDIRECT_URL = "http://localhost:%d/authorized" % PORT
 AUTHENTIQ_BASE = "https://connect.authentiq.io/"
-AUTHENTIQ_BASE = "http://192.168.0.10:5000/"
+
 AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
@@ -142,4 +144,5 @@ if __name__ == "__main__":
         # Allow insecure oauth2 when debugging
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    app.run(port=5002)
+    # set `host=localhost` in order the redirect_uri works for testing
+    app.run(host="localhost", port=PORT)
