@@ -10,14 +10,15 @@
           data-client-id="{{ client_id }}"
           data-redirect-uri="{{ redirect_uri }}"
           data-state="{{ state }}"
-          data-response-type="code"
-          data-response-mode="query"></script>
+          data-response-type="code"></script>
+
+  {# redirect page to /index only when display=page #}
+  {% if display == 'page' %}
+    <script>
+      window.location.replace({{ redirect_to|tojson }});
+    </script>
+  {% endif %}
 </head>
 <body>
-  <h1>Example Flask App</h1>
-
-  <button class="authentiq-button">
-    Sign in with Authentiq ID
-  </button>
 </body>
 </html>

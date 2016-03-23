@@ -28,16 +28,18 @@ class Config(object):
     TESTING = False
     SECRET_KEY = "Curve25519"
 
-CLIENT_ID = "test-client-examples"
-CLIENT_SECRET = "NoMorePassw0rds!"
-REDIRECT_URL = "http://127.0.0.1:5002/authorized"
+PORT = 5002
+
+CLIENT_ID = "examples-flask"
+CLIENT_SECRET = "ed25519"
+REDIRECT_URL = "http://localhost:%d/authorized" % PORT
 AUTHENTIQ_BASE = "https://connect.authentiq.io/"
-AUTHENTIQ_BASE = "http://192.168.0.10:5000/"
+
 AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
 
-app = Flask(__name__, static_folder="../assets")
+app = Flask(__name__, static_folder="./assets")
 app.config.from_object(Config)
 
 
@@ -51,8 +53,26 @@ def index():
         "localhost, so that the redirect URL is exactly " + REDIRECT_URL + "."
     )
 
+    # Initialise an authentication session. Here we pass in scope and
+    # redirect_uri explicitly, though when omitted defaults will be taken
+    # from the registered client.
+    authentiq = OAuth2Session(
+        CLIENT_ID,
+        redirect_uri=url_for("authorized", _external=True),
+    )
+
+    # Build the authorization URL and retrieve some client state.
+    authorization_url, state = authentiq.authorization_url(AUTHORIZE_URL)
+
+    # Save state to match it in the response.
+    session["state"] = state
+
     # Redirect to the Authentiq Connect authentication endpoint.
-    return render_template("index.html")
+    return render_template("index.html",
+                            provider_uri=AUTHENTIQ_BASE,
+                            client_id=CLIENT_ID,
+                            redirect_uri=REDIRECT_URL,
+                            state=state)
 
 
 @app.route("/authorized")
@@ -117,7 +137,16 @@ def authorized():
         )
 
     # Display the structure, use userinfo["sub"] as the user's UUID.
-    return jsonify(userinfo)
+    # return jsonify(userinfo)
+
+    # Redirect to the Authentiq Connect authentication endpoint.
+    return render_template("authorized.html",
+                            provider_uri=AUTHENTIQ_BASE,
+                            client_id=CLIENT_ID,
+                            redirect_uri=REDIRECT_URL,
+                            state=session.get("state"),
+                            display="modal",    # default
+                            redirect_to=url_for(".index"))
 
 
 if __name__ == "__main__":
@@ -127,4 +156,5 @@ if __name__ == "__main__":
         # Allow insecure oauth2 when debugging
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    app.run(port=5002)
+    # set `host=localhost` in order the redirect_uri works for testing
+    app.run(host="localhost", port=PORT)
