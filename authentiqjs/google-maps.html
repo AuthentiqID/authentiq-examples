@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentiq example - Client side JS snippet - Google Maps</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Authentiq example - Client side JS snippet" />
+  <meta property="og:url" content="https://www.authentiq.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="Authentiq example - Client side JS snippet" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <!-- Load our Bootstrap theme -->
+  <link rel="stylesheet" href="//cdn.authentiq.io/theme/latest/css/bootstrap.min.css"/>
+
+  <!-- Load needed fonts -->
+  <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
+
+  <!--
+      Load the Authentiq snippet,
+      we also set client-id that will be used
+
+      IMPORTANT: the class needs to be set like this
+  -->
+  <script src="//cdn.authentiq.io/authentiqjs/latest/authentiq.js"
+          class="authentiq-snippet"
+          data-client-id="examples-authentiqjs">
+  </script>
+
+  <script>
+    // let's handle some events that snippet will emit
+    authentiq.subscribe('profile', function(profile){
+      debug('profile', profile);
+
+      // update the map
+      update_map(profile['aq:location']);
+    });
+
+    authentiq.subscribe('concluded', function(){
+      debug('concluded');
+
+      // remove the map
+      update_map();
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Authentiq snippet example <small>Retrieve location in a google map</small></h1>
+    <hr />
+
+    <p class="lead">
+      For testing this example you must have our app installed on your phone.
+    </p>
+
+    <p>
+      <button class="authentiq-button"
+              data-scope="aq:name~r phone openid email aq:location aq:push"
+              data-prompt="consent"
+              data-sign-out-claim="given_name">
+        Sign in using your phone
+      </button>
+    </p>
+    <br />
+
+    <div id="maps" class="row" style="display: none;">
+        <div id="map" class="col-md-6 embed-responsive" style="height: 400px;"> </div>
+        <div id="streetview" class="col-md-6 embed-responsive" style="height: 400px;"> </div>
+    </div>
+
+    <h2>Console output</h2>
+    <div id="console">
+      <pre></pre>
+    </div>
+  </div>
+
+  <!-- Load jQuery -->
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//cdn.authentiq.io/theme/latest/js/bootstrap.min.js"></script>
+
+  <script>
+    // helper function for demo purposes
+    // this is not part of Authentiq snippet implementation
+    function debug(command, data) {
+      var row = $('<div>')
+                    .addClass('row')
+                    .append($('<div>')
+                      .addClass('col-md-2 text-primary')
+                      .text(command))
+                    .append($('<div>')
+                      .addClass('col-md-10')
+                      .text(JSON.stringify(data, null, 2)));
+
+      $('#console pre:first-child').prepend(row);
+
+      if (command === 'concluded') {
+        $('#console').prepend($('<pre>'));
+      }
+    }
+
+    function update_map(location) {
+      var html = '',
+          streetview = '';
+
+      if (typeof location !== 'undefined') {
+        // check if an address has been returned and we can add a marker
+        if (!!location.address && location.address.formatted) {
+          html = '<iframe frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?' +
+            'center=' + encodeURIComponent(location.latitude) + ',' + encodeURIComponent(location.longitude) +
+            '&q=' + encodeURIComponent(location.address.formatted) +
+            '&zoom=15&key=AIzaSyC4Tkypv90bvKKqOJ12DnLbo3kFQJxl6mA" allowfullscreen></iframe>';
+
+        // present a view of current location
+        // you can retry login from app and wait a bit, so as to retrieve better accuracy
+        } else {
+          html = '<iframe frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/view?' +
+            'center=' + encodeURIComponent(location.latitude) + ',' + encodeURIComponent(location.longitude) +
+            '&zoom=15&key=AIzaSyC4Tkypv90bvKKqOJ12DnLbo3kFQJxl6mA" allowfullscreen></iframe>';
+        }
+
+        streetview = '<iframe frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/streetview?' +
+          'location=' + encodeURIComponent(location.latitude) + ',' + encodeURIComponent(location.longitude) +
+          '&heading=285&pitch=10&fov=35' +
+          '&key=AIzaSyC4Tkypv90bvKKqOJ12DnLbo3kFQJxl6mA" allowfullscreen></iframe>';
+
+        $('#maps').show();
+      } else {
+        $('#maps').hide();
+      }
+
+      $('#map').html(html);
+      $('#streetview').html(streetview);
+    }
+  </script>
+</body>
+</html>

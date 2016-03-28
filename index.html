@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Authentiq examples</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Authentiq example" />
+    <meta property="og:url" content="https://www.authentiq.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Authentiq example" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+    <!-- Load our Bootstrap theme -->
+    <link rel="stylesheet" href="//cdn.authentiq.io/theme/latest/css/bootstrap.min.css"/>
+
+    <!-- Load needed fonts -->
+    <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
+
+    <style>
+      body{
+        padding-top: 72px;
+        overflow: hidden;
+      }
+
+      html, body, #examples-container {
+        height: 100%;
+      }
+
+      #intro, #examples-container {
+        padding-top: 20px;
+      }
+
+      #examples-frame {
+        height: 100%;
+      }
+
+      .dropdown-menu > ul {
+        list-style-type: disc;
+        color: #895fc0;
+      }
+
+      .navbar-brand.with-logo {
+        padding-left: 67px;
+
+        background: url(//rawgit.com/AuthentiqID/bootstrap/master/docs/assets/brand/authentiq-logo-a-inverse.svg) no-repeat 15px center;
+        background-size: 44px 40px;
+      }
+
+      .navbar-inverse .navbar-nav-inverse > li > ul.navbar-nav > li > a {
+        color: #1B1B22;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand with-logo" href="#">Authentiq Examples</a>
+        </div>
+
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-nav-inverse navbar-right">
+          <li>
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Client side examples<span class="caret"></span></a>
+              <ul class="dropdown-menu examples-menu">
+                <li><a href="authentiqjs/index.html"><b>AuthentiqJS</b> &ndash; Authentiq Connect</a></li>
+                <li><a href="angular/native/index.html"><b>AngularJS</b> &ndash; Authentiq Connect</a></li>
+                <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>AngularJS</b> &ndash; OAuth 2.0</a></li>
+                <li><a href="hellojs/index.html"><b>HelloJS</b> &ndash; OAuth 2.0</a></li>
+              </ul>
+            </li>
+          </ul>
+          </li>
+          <li>
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Server side examples <span class="caret"></span></a>
+              <ul class="dropdown-menu examples-menu">
+                <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>Flask</b> &ndash; Authentiq Connect</a></li>
+                <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>Flask</b> &ndash; OAuth 2.0</a></li>
+                <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>NodeJS</b> &ndash; OAuth 2.0 (soon)</a></li>
+                <li><a href="#" data-toggle="tooltip" data-placement="left" title="Coming soon."><b>Wordpress</b> &ndash; OAuth 2.0 (soon)</a></li>
+              </ul>
+            </li>
+          </ul>
+          </li>
+          </ul>
+
+          <p class="navbar-text navbar-right"><a id="view-on-github" href="https://github.com/AuthentiqID/authentiq-examples/" class="navbar-link" data-github-base="https://github.com/AuthentiqID/authentiq-examples/">View code on GitHub</a>&nbsp;&nbsp;&nbsp;</p>
+
+        </div><!--/.nav-collapse -->
+
+      </div>
+    </nav>
+
+    <div id="intro" class="container">
+      <h1>Check our examples</h1>
+      <hr />
+      <p class="lead">
+        You can check some of our examples and even inspect the code @github so as to get an idea of how to implement Authentiq to you site.
+      </p>
+
+      <div class="alert alert-info" role="alert">
+        If you have a good idea, you can contribute back to us and we will add it in this site.
+      </div>
+    </div>
+
+    <div id="examples-container" style="display: none;">
+      <iframe id="examples-frame" src="" width="100%" scrolling="auto" frameborder="0">Please use a browser that supports iframes.</iframe>
+    </div>
+
+    <!-- Load jQuery -->
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="//cdn.authentiq.io/theme/latest/js/bootstrap.min.js"></script>
+
+    <script>
+      (function($){
+        // Whole-script strict mode syntax
+        'use strict';
+
+        $(function() {
+
+          // enable tooltips
+          $('[data-toggle="tooltip"]').tooltip();
+
+          // store active url and menu
+          var active_href = '', active_menu;
+
+          var $examples_container = $('#examples-container');
+          var $examples_frame = $('#examples-frame');
+          var $examples_menu = $('.examples-menu');
+
+          // deselects all menus and sub-menus
+          var deselect_menus = function() {
+            $examples_menu.parents('.dropdown').removeClass('active')
+                          .find('.active').removeClass('active');
+          };
+
+          // handles clicks on menu items
+          $examples_menu.find('a').on('click', function(e) {
+            e.preventDefault();
+
+            // deselect all menus
+            deselect_menus();
+
+            // if user is in homepage and clicks in a page pointing to homepage, then skip
+            if (!active_href && $(this).attr('href') === '#') {
+              return;
+            }
+
+            // hide intro page
+            $('#intro').hide();
+
+            // update reference to active menu and href
+            active_menu = $(this);
+            active_href = active_menu.attr('href');
+
+            // set active menu and parent menu in UI
+            active_menu.parent().addClass('active')
+                      .parents('.dropdown').addClass('active');
+
+            // update iFrame with the corresponding example
+            $examples_frame.attr('src', active_href);
+
+            // present the iFrame
+            $examples_container.show();
+
+            // update location hash, for sharing and when browser refreshes
+            window.location.hash = active_href;
+          });
+
+          // if browser refreshes or some visited an example from an external link
+          // then read the example to present from location hash
+          var hash = window.location.hash.substring(1);
+          if (hash) {
+            $examples_menu.find('a[href="' + hash + '"]').trigger('click');
+          }
+
+          // generate example link at github repo on github button click
+          $('#view-on-github').on('click', function(e) {
+            e.preventDefault();
+
+            window.open($(this).data('github-base') + active_href, '_blank');
+          });
+
+          // instead of handling all button clicks
+          // we can handle the hashchange
+          // e.g: when home button is being clicked
+          $(window).bind('hashchange', function() {
+            var hash = window.location.hash.substring(1);
+
+            // if hash is empty
+            // return back to home
+            if (!hash) {
+              // hide the example iFrame container
+              $examples_container.hide();
+
+              // show the intro
+              $('#intro').show();
+
+              // deselect all menus
+              deselect_menus();
+
+              // reset active menu and href
+              active_menu = null;
+              active_href = '';
+            }
+          });
+        });
+      })(jQuery);
+    </script>
+  </body>
+</html>
