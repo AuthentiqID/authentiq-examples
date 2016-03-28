@@ -5,14 +5,14 @@
 
   <!-- Open Graph -->
   <meta property="og:title" content="Authentiq example - Client side JS snippet" />
-  <meta property="og:url" content="http://www.authentiq.com" />
+  <meta property="og:url" content="https://www.authentiq.com" />
   <meta property="og:type" content="website" />
   <meta property="og:description" content="Authentiq example - Client side JS snippet" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
   <!-- Load our Bootstrap theme -->
-  <link rel="stylesheet" href="//rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="//cdn.authentiq.io/theme/latest/css/bootstrap.min.css"/>
 
   <!-- Load needed fonts -->
   <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
@@ -20,15 +20,15 @@
   <!-- Favicon -->
   <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
 
-  <!-- 
+  <!--
       Load the Authentiq snippet,
       we also set client-id that will be used
 
       IMPORTANT: the class needs to be set like this
   -->
-  <script src="authentiq.js"
+  <script src="//cdn.authentiq.io/authentiqjs/latest/authentiq.js"
           class="authentiq-snippet"
-          data-client-id="test-js-snippet">
+          data-client-id="examples-authentiqjs">
   </script>
 
   <script>
@@ -80,7 +80,7 @@
 
   <!-- Load jQuery -->
   <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
-  <script src="//rawgit.com/AuthentiqID/bootstrap/master/dist/js/bootstrap.min.js"></script>
+  <script src="//cdn.authentiq.io/theme/latest/js/bootstrap.min.js"></script>
 
   <script>
     // helper function for demo purposes
@@ -113,7 +113,7 @@
             'center=' + encodeURIComponent(location.latitude) + ',' + encodeURIComponent(location.longitude) +
             '&q=' + encodeURIComponent(location.address.formatted) +
             '&zoom=15&key=AIzaSyC4Tkypv90bvKKqOJ12DnLbo3kFQJxl6mA" allowfullscreen></iframe>';
-        
+
         // present a view of current location
         // you can retry login from app and wait a bit, so as to retrieve better accuracy
         } else {
@@ -126,7 +126,7 @@
           'location=' + encodeURIComponent(location.latitude) + ',' + encodeURIComponent(location.longitude) +
           '&heading=285&pitch=10&fov=35' +
           '&key=AIzaSyC4Tkypv90bvKKqOJ12DnLbo3kFQJxl6mA" allowfullscreen></iframe>';
-          
+
         $('#maps').show();
       } else {
         $('#maps').hide();

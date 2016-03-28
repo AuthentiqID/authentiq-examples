@@ -5,14 +5,14 @@
 
     <!-- Open Graph -->
     <meta property="og:title" content="Authentiq snippet example in angular.js" />
-    <meta property="og:url" content="http://www.authentiq.com" />
+    <meta property="og:url" content="https://www.authentiq.com" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Authentiq snippet example in angular.js" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <!-- Load our Bootstrap theme -->
-    <link rel="stylesheet" href="//rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="//cdn.authentiq.io/theme/latest/css/bootstrap.min.css"/>
 
     <!-- Load needed fonts -->
     <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
@@ -21,16 +21,16 @@
     <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
 
     <!-- load the Authentiq snippet -->
-    <script src="static/js/authentiq.js"
+    <script src="//cdn.authentiq.io/authentiqjs/latest/authentiq.js"
             class="authentiq-snippet"
-            data-client-id="test-js-snippet">
+            data-client-id="examples-angularjs">
     </script>
 
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
 
     <!-- Load the angular module that handles the Authentiq snippet -->
     <script src="authentiq-angular.js"></script>
-    
+
     <script src="todo.js"></script>
   </head>
   <body>
@@ -51,7 +51,7 @@
       </p>
 
       <hr />
-  
+
       <h2>Todo list{{profile.given_name ? ' of ' + profile.name: ''}}</h2>
 
       <p ng-show="!loggedIn">Please login first.</p>
