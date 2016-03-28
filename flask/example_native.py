@@ -19,7 +19,7 @@ import oauthlib
 import requests
 
 from flask import Flask
-from flask import abort, jsonify, redirect, render_template, request, session, url_for
+from flask import g, abort, jsonify, redirect, render_template, request, session, url_for
 from requests_oauthlib import OAuth2Session
 
 
@@ -39,40 +39,87 @@ AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
 
-app = Flask(__name__, static_folder="./assets")
+app = Flask(__name__)
 app.config.from_object(Config)
 
+@app.before_request
+def requests_session():
+    g.user = g.userinfo = None
+
+    # TODO: all this stuff is plain oauth2, for oidc it's much simpler
+    # should support both flows here for demo purposes
+    if "token" in session:
+
+        # Pass in our token; requests-oauthlib will
+        # take care of setting the access_token in the Authorization header
+        authentiq = OAuth2Session(
+            CLIENT_ID,
+            token=session.get("token")
+        )
+
+        # Now we can use the access_token to retrieve an OpenID Connect
+        # compatible UserInfo structure from the provider. Once again,
+        # requests-oauthlib adds a valid Authorization header for us.
+        #
+        # Note that this request can be optimized out if using an OIDC or
+        # native Authentiq Connect client.
+        try:
+            userinfo = authentiq.get(USERINFO_URL).json()
+
+            # store user and userinfo as Flask globals
+            g.user = userinfo["sub"]
+            g.userinfo = userinfo
+
+            print("User {} is signed in".format(g.user))
+
+        except ValueError:
+            print("No user is signed in")
+
+            g.user = g.userinfo = None
+
+        # The HTTP request to the UserInfo endpoint failed.
+        except requests.exceptions.HTTPError as e:
+            abort(
+                code=e.response.status_code or 502,
+                description="Request to userinfo endpoint failed: " +
+                            e.response.reason)
 
 @app.route("/")
 def index():
 
-    # Check if redirect_uri matches with the one registered with the
-    # example client.
-    assert url_for("authorized", _external=True) == REDIRECT_URL, (
-        "For this demo to work correctly, please make sure it is hosted on "
-        "localhost, so that the redirect URL is exactly " + REDIRECT_URL + "."
-    )
+    state = None
 
-    # Initialise an authentication session. Here we pass in scope and
-    # redirect_uri explicitly, though when omitted defaults will be taken
-    # from the registered client.
-    authentiq = OAuth2Session(
-        CLIENT_ID,
-        redirect_uri=url_for("authorized", _external=True),
-    )
+    # if user is not logged in, then create a new session
+    if g.user is None:
 
-    # Build the authorization URL and retrieve some client state.
-    authorization_url, state = authentiq.authorization_url(AUTHORIZE_URL)
+        # Check if redirect_uri matches with the one registered with the
+        # example client.
+        assert url_for("authorized", _external=True) == REDIRECT_URL, (
+            "For this demo to work correctly, please make sure it is hosted on "
+            "localhost, so that the redirect URL is exactly " + REDIRECT_URL + "."
+        )
 
-    # Save state to match it in the response.
-    session["state"] = state
+        # Initialise an authentication session. Here we pass in scope and
+        # redirect_uri explicitly, though when omitted defaults will be taken
+        # from the registered client.
+        authentiq = OAuth2Session(
+            CLIENT_ID,
+            redirect_uri=url_for("authorized", _external=True),
+        )
+
+        # Build the authorization URL and retrieve some client state.
+        authorization_url, state = authentiq.authorization_url(AUTHORIZE_URL)
+
+        # Save state to match it in the response.
+        session["state"] = state
 
     # Redirect to the Authentiq Connect authentication endpoint.
     return render_template("index.html",
                             provider_uri=AUTHENTIQ_BASE,
                             client_id=CLIENT_ID,
                             redirect_uri=REDIRECT_URL,
-                            state=state)
+                            state=state,
+                            logout_uri=url_for(".logout"))
 
 
 @app.route("/authorized")
@@ -95,10 +142,18 @@ def authorized():
     except oauthlib.oauth2.OAuth2Error as e:
         code = e.status_code or 400
         description = "Provider returned: " + (e.description or e.error)
-        abort(code, description=description)
+        print ("%d: %s" % (code, description))
+
+        # Redirect to the Authentiq Connect authentication endpoint.
+        return render_template("authorized.html",
+                                provider_uri=AUTHENTIQ_BASE,
+                                client_id=CLIENT_ID,
+                                redirect_uri=REDIRECT_URL,
+                                state=session.get("state"),
+                                display="modal",    # default
+                                redirect_to=url_for(".index"))
 
     try:
-
         # Use our client_secret to exchange the authorization code for a
         # token. Requests-oauthlib parses the redirected URL for us.
         # The token will contain the access_token, a refresh_token, and the
@@ -106,6 +161,8 @@ def authorized():
         token = authentiq.fetch_token(TOKEN_URL,
                                       client_secret=CLIENT_SECRET,
                                       authorization_response=request.url)
+
+        session["token"] = token
 
     # The incoming request looks flaky, let's not handle it further.
     except oauthlib.oauth2.OAuth2Error as e:
@@ -119,23 +176,6 @@ def authorized():
         abort(code, description=description)
 
 
-    # Now we can use the access_token to retrieve an OpenID Connect
-    # compatible UserInfo structure from the provider. Once again,
-    # requests-oauthlib adds a valid Authorization header for us.
-    #
-    # Note that this request can be optimized out if using an OIDC or
-    # native Authentiq Connect client.
-    try:
-        userinfo = authentiq.get(USERINFO_URL).json()
-
-    # The HTTP request to the UserInfo endpoint failed.
-    except requests.exceptions.HTTPError as e:
-        abort(
-            code=e.response.status_code or 502,
-            description="Request to userinfo endpoint failed: " +
-                        e.response.reason
-        )
-
     # Display the structure, use userinfo["sub"] as the user's UUID.
     # return jsonify(userinfo)
 
@@ -147,6 +187,16 @@ def authorized():
                             state=session.get("state"),
                             display="modal",    # default
                             redirect_to=url_for(".index"))
+
+
+@app.route("/logout")
+def logout():
+    for key in {"user", "token"}:
+        try:
+            del session[key]
+        except KeyError:
+            pass
+    return redirect(url_for(".index"))
 
 
 if __name__ == "__main__":
