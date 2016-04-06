@@ -99,6 +99,7 @@ def requests_session():
                   description="Request to userinfo endpoint failed: " +
                               e.response.reason)
 
+
 @app.route("/")
 def index():
 
@@ -110,8 +111,9 @@ def index():
         # Check if redirect_uri matches with the one registered with the
         # example client.
         assert url_for("authorized", _external=True) == REDIRECT_URL, (
-            "For this demo to work correctly, please make sure it is hosted on "
-            "localhost, so that the redirect URL is exactly " + REDIRECT_URL + "."
+            "For this demo to work correctly, please make sure it is "
+            "hosted on localhost, so that the redirect URL is exactly " +
+            REDIRECT_URL + "."
         )
 
         # Initialise an authentication session. Here we pass in scope and
@@ -130,11 +132,11 @@ def index():
 
     # Redirect to the Authentiq Connect authentication endpoint.
     return render_template("index.html",
-                            provider_uri=AUTHENTIQ_BASE,
-                            client_id=CLIENT_ID,
-                            redirect_uri=REDIRECT_URL,
-                            state=state,
-                            logout_uri=url_for(".logout"))
+                           provider_uri=AUTHENTIQ_BASE,
+                           client_id=CLIENT_ID,
+                           redirect_uri=REDIRECT_URL,
+                           state=state,
+                           logout_uri=url_for(".logout"))
 
 
 @app.route("/authorized")
@@ -192,18 +194,17 @@ def authorized():
         description = "Request to token endpoint failed: " + e.response.reason
         abort(code, description=description)
 
-
     # Display the structure, use userinfo["sub"] as the user's UUID.
     # return jsonify(userinfo)
 
     # Redirect to the Authentiq Connect authentication endpoint.
     return render_template("authorized.html",
-                            provider_uri=AUTHENTIQ_BASE,
-                            client_id=CLIENT_ID,
-                            redirect_uri=REDIRECT_URL,
-                            state=session.get("state"),
-                            display="modal",    # default
-                            redirect_to=url_for(".index"))
+                           provider_uri=AUTHENTIQ_BASE,
+                           client_id=CLIENT_ID,
+                           redirect_uri=REDIRECT_URL,
+                           state=session.get("state"),
+                           display="modal",    # default
+                           redirect_to=url_for(".index"))
 
 
 @app.route("/logout")
