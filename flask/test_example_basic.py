@@ -5,91 +5,85 @@ from __future__ import (absolute_import, division,
 
 import io
 import json
-import logging
-import multiprocessing
 import os
 import pytest
 import requests
-import signal
-import time
 
 from flask import url_for
 
 from example_basic import app
 
-logging.basicConfig(level=logging.DEBUG)
-
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
 @pytest.yield_fixture(scope="session")
-def running_app():
+def test_app():
     """
     Start a Flask app in a separate process; yield process and request context.
     """
     app.config.update({
-        "SERVER_NAME": "127.0.0.1:5002",
+        "SERVER_NAME": "localhost:8000",
         "TESTING": True,
         "DEBUG": False
     })
 
-    process = multiprocessing.Process(target=app.run)
-    process.daemon = True
-    process.start()
-    time.sleep(0.2)
     with app.test_request_context():
-        yield process
-    os.kill(process.pid, signal.SIGINT)
-    process.join()
+        yield app.test_client()
 
 
 @pytest.fixture
-def mocked_userinfo(monkeypatch):
+def mocked_token_endpoint(monkeypatch):
+    """
+    Mocked Token endpoint.
+    """
+    def fetch_token(self, token_url, code=None, authorization_response=None,
+                    body='', auth=None, username=None, password=None,
+                    method='POST', timeout=None, headers=None, verify=True,
+                    **kwargs):
+        app.logger.info("Token endpoint called at %s", token_url)
+        return {"Foo": "Bar"}
+
+    monkeypatch.setattr(
+        "requests_oauthlib.OAuth2Session.fetch_token", fetch_token)
+
+
+@pytest.fixture
+def mocked_userinfo_endpoint(monkeypatch):
     """
     Mocked UserInfo endpoint.
     """
     def mock_request(self, method, url, *args, **kwargs):
-        userinfo = {
-            "name": "Demo User"
-        }
+        app.logger.info("UserInfo endpoint called at %s", url)
+        userinfo = {"name": "Demo User"}
         response = requests.Response()
         response.status_code = 200
-        response.raw = io.BytesIO(json.dumps(userinfo))
+        response.raw = io.BytesIO(json.dumps(userinfo).encode("utf-8"))
         return response
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
 
-def test_app_runs(running_app):
-    assert running_app
-    assert running_app.is_alive()
-
-
-def test_index(running_app):
-
-    url = url_for("index", _external=True)
-
+def test_index(test_app):
+    """
+    Test if index redirects to provider correctly.
+    """
     # check we are redirected to provider
-    res = requests.get(url, allow_redirects=False)
-    print(res.content)
+    res = test_app.get(url_for("index"))
     assert res.status_code == 302
 
-    # load provider authorization page
+    # load provider authorization page without an error
     url = res.headers.get("Location")
-    res = requests.get(url, allow_redirects=False)
-    print(res.content)
+    res = requests.get(url, allow_redirects=1)
     assert res.status_code == 200
-    print(dict(res.headers))
-    assert res.headers
+    assert res.headers["Aq-Session-Uri"]
 
 
-def test_authorized(running_app):
+def test_authorized(test_app, mocked_token_endpoint, mocked_userinfo_endpoint):
     """
     Test if app displays the user information after authorization.
     """
-    url = url_for("authorized", code="1234", _external=True)
-    res = requests.get(url, allow_redirects=False)
+    url = url_for("authorized", code="1234")
+    res = test_app.get(url)
     assert res.status_code == 200
-    data = res.json()
-    print(data)
+    data = json.loads(res.data.decode("utf-8"))
     assert data["name"] == "Demo User"
