@@ -10,7 +10,6 @@ requests-oauthlib module to make this trivial in Flask.
 As with all plain OAuth 2.0 integrations, we use the UserInfo endpoint to
 retrieve the user profile after authorization. Check out our native
 AuthentiqJS snippet or an OpenID Connect library to optimise this.
-
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -18,26 +17,37 @@ from __future__ import (absolute_import, division,
 import oauthlib
 import requests
 
-from flask import Flask
-from flask import abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, request, session, url_for
 from requests_oauthlib import OAuth2Session
 
 
 class Config(object):
+    """
+    Flask configuration container.
+    """
     DEBUG = True
     TESTING = False
-    SECRET_KEY = "Curve25519"
+    SECRET_KEY = "aicahquohzieRah5ZooLoo3a"
 
-PORT = 5002
-
-CLIENT_ID = "examples-flask"
-CLIENT_SECRET = "ed25519"
-REDIRECT_URL = "http://localhost:%d/authorized" % PORT
 AUTHENTIQ_BASE = "https://connect.authentiq.io/"
-
+# AUTHENTIQ_BASE = "http://muon.local:10000/"
 AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
+
+# The following app is registered at Authentiq Connect.
+CLIENT_ID = "examples-flask"
+CLIENT_SECRET = "ed25519"
+
+# Personal details requested from the user. See the "scopes_supported" key in
+# the following JSON document for an up to date list of supported scopes:
+#
+#   https://connect.authentiq.io/.well-known/openid-configuration
+#
+REQUESTED_SCOPES = ["aq:name", "email", "aq:push"]
+
+PORT = 8000
+REDIRECT_URL = "http://localhost:%d/authorized" % PORT
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -58,7 +68,7 @@ def index():
     # from the registered client.
     authentiq = OAuth2Session(
         CLIENT_ID,
-        scope=["openid", "aq:name", "aq:push"],
+        scope=REQUESTED_SCOPES,
         redirect_uri=url_for("authorized", _external=True),
     )
 
@@ -79,10 +89,7 @@ def authorized():
     """
     # Pass in our client side crypto state; requests-oauthlib will
     # take care of matching it in the OAuth2 response.
-    authentiq = OAuth2Session(
-        CLIENT_ID,
-        state=session.get("state")
-    )
+    authentiq = OAuth2Session(CLIENT_ID, state=session.get("state"))
 
     try:
         error = request.args["error"]
@@ -104,17 +111,19 @@ def authorized():
                                       client_secret=CLIENT_SECRET,
                                       authorization_response=request.url)
 
+        app.logger.info("Received token: %s" % token)
+
     # The incoming request looks flaky, let's not handle it further.
     except oauthlib.oauth2.OAuth2Error as e:
-        abort(code=e.status_code or 400,
-              description=e.description or e.error)
+        description = "Request to token endpoint failed: " + \
+                      (e.description or e.error)
+        abort(code=e.status_code or 400, description=description)
 
     # The HTTP request to the token endpoint failed.
     except requests.exceptions.HTTPError as e:
         code = e.response.status_code or 502
         description = "Request to token endpoint failed: " + e.response.reason
         abort(code, description=description)
-
 
     # Now we can use the access_token to retrieve an OpenID Connect
     # compatible UserInfo structure from the provider. Once again,
@@ -127,13 +136,16 @@ def authorized():
 
     # The HTTP request to the UserInfo endpoint failed.
     except requests.exceptions.HTTPError as e:
-        abort(
-            code=e.response.status_code or 502,
-            description="Request to userinfo endpoint failed: " +
-                        e.response.reason
-        )
+        abort(code=e.response.status_code or 502,
+              description="Request to userinfo endpoint failed: " +
+                          e.response.reason)
+    except ValueError as e:
+        abort(code=502,
+              description="Could not decode userinfo response: " + e.message)
 
-    # Display the structure, use userinfo["sub"] as the user's UUID.
+    # Here you would save the identity information in database or session
+    # and sign the user in. For now just display the USerInfo structure.
+    # Use userinfo["sub"] as the user's UUID within a single sign-on sector.
     return jsonify(userinfo)
 
 
@@ -144,5 +156,5 @@ if __name__ == "__main__":
         # Allow insecure oauth2 when debugging
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    # set `host=localhost` in order the redirect_uri works for testing
+    # Explicitly set `host=localhost` in order to get the correct redirect_uri.
     app.run(host="localhost", port=PORT)
