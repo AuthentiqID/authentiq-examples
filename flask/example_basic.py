@@ -35,7 +35,7 @@ TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
 
 # The following app is registered at Authentiq Connect.
-CLIENT_ID = "examples-flask"
+CLIENT_ID = "examples-flask-basic"
 CLIENT_SECRET = "ed25519"
 
 # Personal details requested from the user. See the "scopes_supported" key in

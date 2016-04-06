@@ -10,7 +10,6 @@ requests-oauthlib module to make this trivial in Flask.
 As with all plain OAuth 2.0 integrations, we use the UserInfo endpoint to
 retrieve the user profile after authorization. Check out our native
 AuthentiqJS snippet or an OpenID Connect library to optimise this.
-
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -18,29 +17,41 @@ from __future__ import (absolute_import, division,
 import oauthlib
 import requests
 
-from flask import Flask
-from flask import g, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, redirect, request, session, url_for
+from flask import g, render_template
 from requests_oauthlib import OAuth2Session
 
 
 class Config(object):
+    """
+    Flask configuration container.
+    """
     DEBUG = True
     TESTING = False
-    SECRET_KEY = "Curve25519"
+    SECRET_KEY = "wu8EiPh2LeeChaikoh3doo2n"
 
-PORT = 5002
-
-CLIENT_ID = "examples-flask"
-CLIENT_SECRET = "ed25519"
-REDIRECT_URL = "http://localhost:%d/authorized" % PORT
 AUTHENTIQ_BASE = "https://connect.authentiq.io/"
-
 AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
 
+# The following app is registered at Authentiq Connect.
+CLIENT_ID = "examples-flask-native"
+CLIENT_SECRET = "ed25519"
+
+# Personal details requested from the user. See the "scopes_supported" key in
+# the following JSON document for an up to date list of supported scopes:
+#
+#   https://connect.authentiq.io/.well-known/openid-configuration
+#
+REQUESTED_SCOPES = ["aq:name", "email", "aq:push"]
+
+PORT = 8000
+REDIRECT_URL = "http://localhost:%d/authorized" % PORT
+
 app = Flask(__name__)
 app.config.from_object(Config)
+
 
 @app.before_request
 def requests_session():
@@ -73,16 +84,20 @@ def requests_session():
             print("User {} is signed in".format(g.user))
 
         except ValueError:
-            print("No user is signed in")
+            app.logger.warning("No user is signed in")
+            g.user = g.userinfo = None
 
+        except oauthlib.oauth2.OAuth2Error as e:
+            code = e.status_code or 400
+            description = "Provider returned: " + (e.description or e.error)
+            app.logger.error("%d: %s" % (code, description))
             g.user = g.userinfo = None
 
         # The HTTP request to the UserInfo endpoint failed.
         except requests.exceptions.HTTPError as e:
-            abort(
-                code=e.response.status_code or 502,
-                description="Request to userinfo endpoint failed: " +
-                            e.response.reason)
+            abort(code=502,
+                  description="Request to userinfo endpoint failed: " +
+                              e.response.reason)
 
 @app.route("/")
 def index():
@@ -142,16 +157,16 @@ def authorized():
     except oauthlib.oauth2.OAuth2Error as e:
         code = e.status_code or 400
         description = "Provider returned: " + (e.description or e.error)
-        print ("%d: %s" % (code, description))
+        app.logger.error("%d: %s" % (code, description))
 
         # Redirect to the Authentiq Connect authentication endpoint.
         return render_template("authorized.html",
-                                provider_uri=AUTHENTIQ_BASE,
-                                client_id=CLIENT_ID,
-                                redirect_uri=REDIRECT_URL,
-                                state=session.get("state"),
-                                display="modal",    # default
-                                redirect_to=url_for(".index"))
+                               provider_uri=AUTHENTIQ_BASE,
+                               client_id=CLIENT_ID,
+                               redirect_uri=REDIRECT_URL,
+                               state=session.get("state"),
+                               display="modal",    # default
+                               redirect_to=url_for(".index"))
 
     try:
         # Use our client_secret to exchange the authorization code for a
@@ -163,11 +178,13 @@ def authorized():
                                       authorization_response=request.url)
 
         session["token"] = token
+        app.logger.info("Received token: %s" % token)
 
     # The incoming request looks flaky, let's not handle it further.
     except oauthlib.oauth2.OAuth2Error as e:
-        abort(code=e.status_code or 400,
-              description=e.description or e.error)
+        description = "Request to token endpoint failed: " + \
+                      (e.description or e.error)
+        abort(code=e.status_code or 400, description=description)
 
     # The HTTP request to the token endpoint failed.
     except requests.exceptions.HTTPError as e:
@@ -206,5 +223,5 @@ if __name__ == "__main__":
         # Allow insecure oauth2 when debugging
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    # set `host=localhost` in order the redirect_uri works for testing
+    # Explicitly set `host=localhost` in order to get the correct redirect_uri.
     app.run(host="localhost", port=PORT)
