@@ -30,7 +30,6 @@ class Config(object):
     SECRET_KEY = "aicahquohzieRah5ZooLoo3a"
 
 AUTHENTIQ_BASE = "https://connect.authentiq.io/"
-# AUTHENTIQ_BASE = "http://muon.local:10000/"
 AUTHORIZE_URL = AUTHENTIQ_BASE + "authorize"
 TOKEN_URL = AUTHENTIQ_BASE + "token"
 USERINFO_URL = AUTHENTIQ_BASE + "userinfo"
