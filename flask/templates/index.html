@@ -14,6 +14,9 @@
           {% endif %}
           {% if g.user or g.userinfo %}
             data-signed-in="true"
+            {% if g.userinfo.given_name %}
+              data-sign-out-text="Sign out {{g.userinfo.given_name}}"
+            {% endif %}
           {% endif %}
           data-response-type="code"
           data-response-mode="query"></script>
