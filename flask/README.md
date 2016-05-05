@@ -1,12 +1,12 @@
-# Flask examples
+# Authentiq Flask examples
 
-This directory contains two examples showing how to integrate Authentiq Connect into server applications, allowing people to sign in using [Authentiq ID](https://itunes.apple.com/gb/app/authentiq-id/id964932341).
+This repository contains two examples showing how to integrate [Authentiq Connect](https://www.authentiq.com/) into your Python applications, allowing people to sign in using their [Authentiq ID](https://itunes.apple.com/gb/app/authentiq-id/id964932341).
 
 > We'll add another example soon that shows how to connect Authentiq to your user database to easily add two-step verification (through any [TOTP](https://tools.ietf.org/html/rfc6238)-compatible app, e.g. Google Authenticator) and passwordless logins on top of your existing username & password database.
 
 ## Installation
 
-Assuming you have cloned this repository already, on Ubuntu 15.04, install the following packages.
+Assuming you have cloned this repository already, on Ubuntu 16.04, install the following packages:
 
     sudo apt-get install python-tox python3-flask python3-requests python3-requests-oauthlib
 
@@ -31,12 +31,13 @@ This example uses the [AuthentiqJS](https://github.com/AuthentiqID/authentiq-js)
 
     python3 example_native.py
 
-## Contributing
-
-Please help us improve these examples by opening an issue or a pull request.
-
 ### Tests
 
 Simply run tox to run tests on Python 2 and Python 3.
 
     tox
+
+## Contributing
+
+Please help us improve these examples by opening an issue or a pull request.
+

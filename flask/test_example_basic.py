@@ -19,7 +19,7 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 @pytest.yield_fixture(scope="session")
 def test_app():
     """
-    Start a Flask app in a separate process; yield process and request context.
+    Create test context for app and yield test client.
     """
     app.config.update({
         "SERVER_NAME": "localhost:8000",

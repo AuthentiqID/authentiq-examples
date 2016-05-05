@@ -111,9 +111,8 @@ def index():
         # Check if redirect_uri matches with the one registered with the
         # example client.
         assert url_for("authorized", _external=True) == REDIRECT_URL, (
-            "For this demo to work correctly, please make sure it is "
-            "hosted on localhost, so that the redirect URL is exactly " +
-            REDIRECT_URL + "."
+        "For this demo to work correctly, please make sure it is hosted on "
+        "localhost, so that the redirect URL is exactly " + REDIRECT_URL + "."
         )
 
         # Initialise an authentication session. Here we pass in scope and
@@ -146,10 +145,7 @@ def authorized():
     """
     # Pass in our client side crypto state; requests-oauthlib will
     # take care of matching it in the OAuth2 response.
-    authentiq = OAuth2Session(
-        CLIENT_ID,
-        state=session.get("state")
-    )
+    authentiq = OAuth2Session(CLIENT_ID, state=session.get("state"))
 
     try:
         error = request.args["error"]
