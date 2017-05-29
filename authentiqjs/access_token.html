@@ -12,23 +12,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
   <!-- Load our Bootstrap theme -->
-  <link rel="stylesheet" href="//rawgit.com/AuthentiqID/bootstrap/master/dist/css/bootstrap.min.css"/>
+  <link href="//cdn.authentiq.io/theme/3.3.7aq1/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Load needed fonts -->
-  <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400|Material+Icons" rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=Montserrat:400,700|Noto+Serif:400,400italic,700|Material+Icons" rel="stylesheet" type="text/css">
 
   <!-- Favicon -->
   <link rel="shortcut icon" href="//www.authentiq.com/theme/images/apple-touch-icon.png" />
 
-  <!-- 
+  <!--
       Load the Authentiq snippet,
       we also set client-id that will be used
 
       IMPORTANT: the class needs to be set like this
   -->
-  <script src="authentiq.js"
+  <script src="//cdn.authentiq.io/authentiqjs/0.1.1-3/authentiq.js"
           class="authentiq-snippet"
-          data-client-id="test-js-snippet">
+          data-client-id="examples-authentiqjs">
   </script>
 
   <script>
@@ -47,7 +47,7 @@
 
         // 60 seconds less to secure browser and response latency
         expires_at.setSeconds(expires_at.getSeconds() + parseInt(token.expires_in) - 60);
-        
+
         token.expires_at = expires_at;
       }
 
@@ -106,7 +106,7 @@
 
   <!-- Load jQuery -->
   <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
-  <script src="//rawgit.com/AuthentiqID/bootstrap/master/dist/js/bootstrap.min.js"></script>
+  <script src="//cdn.authentiq.io/theme/3.3.7aq1/js/bootstrap.min.js"></script>
 
   <script>
     // helper function for demo purposes
@@ -138,7 +138,7 @@
       if (typeof token !== 'undefined') {
         // json parse the token
         token = JSON.parse(token);
-        
+
         access_token = token.access_token;
       }
 
